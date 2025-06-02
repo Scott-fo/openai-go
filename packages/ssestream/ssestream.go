@@ -21,6 +21,11 @@ type Decoder interface {
 	Err() error
 }
 
+// Make max size 5mb to support streaming image edit responses.
+const (
+	ScannerMaxTokenSize = 5 * 1024 * 1024 // 5mb
+)
+
 func NewDecoder(res *http.Response) Decoder {
 	if res == nil || res.Body == nil {
 		return nil
@@ -32,7 +37,7 @@ func NewDecoder(res *http.Response) Decoder {
 		decoder = t(res.Body)
 	} else {
 		scn := bufio.NewScanner(res.Body)
-		scn.Buffer(nil, bufio.MaxScanTokenSize<<4)
+		scn.Buffer(nil, ScannerMaxTokenSize)
 		decoder = &eventStreamDecoder{rc: res.Body, scn: scn}
 	}
 	return decoder
